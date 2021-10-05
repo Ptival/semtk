@@ -31,14 +31,22 @@ fi
 
 # Unpack the Fuseski distribution
 
-tar xfzC apache-jena-fuseki-3.16.0.tar.gz /opt
-mv /opt/apache-jena-fuseki-3.16.0 /opt/fuseki
+tar xfzC apache-jena-fuseki-4.2.0.tar.gz /opt
+mv /opt/apache-jena-fuseki-4.2.0 /opt/fuseki
 
 # Set up and start Fuseki system service
 
 adduser --system --group --no-create-home --disabled-password fuseki
 mkdir /etc/fuseki
 chown fuseki.fuseki /etc/fuseki
+
+export FUSEKI_BASE=/etc/fuseki
+mkdir /etc/fuseki/configuration
+chown fuseki.fuseki /etc/fuseki/configuration
+mv config-tdb2.ttl /etc/fuseki/configuration
+mkdir /etc/fuseki/tdb2
+chown fuseki.fuseki /etc/fuseki/tdb2
+
 cp /opt/fuseki/fuseki.service /etc/systemd/system/fuseki.service
 systemctl enable fuseki
 systemctl start fuseki
@@ -67,7 +75,7 @@ for service in ${ENABLED_SERVICES}; do
   )
 done
 
-# Install the SemTK webapps 
+# Install the SemTK webapps
 
 export WEBAPPS=/var/www/html
 ./updateWebapps.sh ${WEBAPPS}
@@ -85,9 +93,8 @@ envsubst <configSemTK.service >/etc/systemd/system/configSemTK.service
 systemctl enable configSemTK
 systemctl start configSemTK
 
-# Create and initialize the Fuseki database (server URL will be "http://localhost:3030/SEMTK") 
+# Create and initialize the Fuseki database (server URL will be "http://localhost:3030/SEMTK")
 
 curl -Ss -d 'dbName=SEMTK' -d 'dbType=tdb' 'http://localhost:3030/$/datasets'
 # How to load a data file (keep for future reference)
 #curl -Ss -F 'files[]=@/tmp/files/SEMTK.nq' 'http://localhost:3030/SEMTK/data'
-
